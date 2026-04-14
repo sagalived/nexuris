@@ -169,6 +169,7 @@ export const ContractsPage: React.FC = () => {
                   </TableCell>
                 </TableRow>
               ) : (
+                filteredContracts.map((contract) => (
                   <TableRow 
                     key={contract.id} 
                     className="border-primary/5 hover:bg-primary/5 transition-colors cursor-pointer group/row"
