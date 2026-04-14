@@ -1,6 +1,7 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { AuthProvider } from './lib/AuthContext';
+import { firebaseInitError } from './lib/firebase';
 import { AdminRoute } from './components/admin/AdminRoute';
 import { AdminLayout } from './components/admin/AdminLayout';
 import { AdminDashboard } from './pages/admin/Dashboard';
@@ -17,6 +18,22 @@ import { ContractDetailsPage } from './pages/admin/ContractDetails';
 import { LandingPage } from './pages/LandingPage';
 
 export default function App() {
+  if (firebaseInitError) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-black text-white p-6">
+        <div className="max-w-2xl rounded-3xl border border-red-500/30 bg-zinc-950 p-8 shadow-2xl">
+          <h1 className="text-3xl font-bold text-red-300 mb-4">Erro de configuração do Firebase</h1>
+          <p className="text-sm leading-relaxed text-gray-300">
+            {firebaseInitError}
+          </p>
+          <p className="mt-4 text-sm text-yellow-200">
+            Verifique as variáveis de ambiente VITE_FIREBASE_* no Render e reimplante o app.
+          </p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <AuthProvider>
       <Router>

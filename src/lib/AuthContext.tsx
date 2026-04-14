@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
-import { auth, db, OperationType, handleFirestoreError } from './firebase';
+import { auth, db, OperationType, handleFirestoreError, firebaseInitError } from './firebase';
 import { onAuthStateChanged, User as FirebaseUser } from 'firebase/auth';
 import { doc, onSnapshot, setDoc, serverTimestamp } from 'firebase/firestore';
 
@@ -53,6 +53,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         role: 'admin',
         createdAt: new Date(),
       });
+      setLoading(false);
+      return;
+    }
+
+    if (firebaseInitError) {
+      setLoading(false);
+      return;
+    }
+
+    if (!auth || !db) {
       setLoading(false);
       return;
     }
@@ -114,7 +124,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setIsDemoMode(false);
     setProfile(null);
     setUser(null);
-    await auth.signOut();
+    if (auth) {
+      await auth.signOut();
+    }
   };
 
   const value = {

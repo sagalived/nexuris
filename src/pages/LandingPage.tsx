@@ -15,7 +15,17 @@ export const LandingPage: React.FC = () => {
   const [authLoading, setAuthLoading] = useState(false);
   const [showDemoOption, setShowDemoOption] = useState(false);
 
-  if (loading) return null;
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-black text-white px-4">
+        <div className="rounded-3xl border border-primary/30 bg-zinc-950 p-8 text-center shadow-xl">
+          <p className="text-lg font-semibold">Carregando sistema...</p>
+          <p className="mt-2 text-sm text-gray-400">Aguarde enquanto verificamos seu acesso.</p>
+        </div>
+      </div>
+    );
+  }
+
   if (isAdmin) return <Navigate to="/admin" replace />;
 
   const handleEmailLogin = async (e: React.FormEvent) => {
