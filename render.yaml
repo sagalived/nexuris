@@ -1,10 +1,6 @@
 services:
-  - type: static
+  - type: web
     name: nexuris-dashboard
-    env: static
+    env: node
     buildCommand: npm install && npm run build
-    publishDir: dist
-    routes:
-      - type: rewrite
-        source: /*
-        destination: /index.html
+    startCommand: npm start
