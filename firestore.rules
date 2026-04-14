@@ -1,0 +1,107 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // ===============================================================
+    // Assumed Data Model
+    // ===============================================================
+    //
+    // Collection: users
+    // Fields:
+    //   - uid: string (required)
+    //   - email: string (required)
+    //   - displayName: string
+    //   - photoURL: string
+    //   - role: string (admin, lawyer, user) (required)
+    //   - createdAt: timestamp
+    //
+    // Collection: contracts
+    // Fields:
+    //   - title: string (required)
+    //   - status: string (draft, active, expired, terminated) (required)
+    //   - value: number
+    //   - category: string (Contrato, Ata, Licitação) (required)
+    //   - lawyerId: string
+    //   - createdAt: timestamp
+    //
+    // Collection: logs
+    // Fields:
+    //   - userId: string (required)
+    //   - userEmail: string
+    //   - action: string (required)
+    //   - details: string
+    //   - timestamp: timestamp (required)
+    //
+    // ===============================================================
+
+    // ===============================================================
+    // Helper Functions
+    // ===============================================================
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+
+    function isAdmin() {
+      return isAuthenticated() &&
+        (
+          (exists(/databases/$(database)/documents/users/$(request.auth.uid)) && 
+           get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin') ||
+          request.auth.token.email == "sagalived@gmail.com" ||
+          request.auth.token.email == "admin@nexuris.com"
+        );
+    }
+
+    function isLawyer() {
+      return isAuthenticated() && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'lawyer';
+    }
+
+    function isValidUser(data) {
+      return data.keys().hasAll(['uid', 'email', 'role']) &&
+             data.uid is string &&
+             data.email is string &&
+             data.role in ['admin', 'lawyer', 'user'] &&
+             data.email.matches("^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$");
+    }
+
+    function isValidContract(data) {
+      return data.keys().hasAll(['instrumentType', 'status', 'instrumentNumber']) &&
+             data.instrumentType in ['contrato', 'ata'] &&
+             data.status is string &&
+             data.instrumentNumber is string && data.instrumentNumber.size() < 100;
+    }
+
+    function isValidLog(data) {
+      return data.keys().hasAll(['userId', 'action', 'timestamp']) &&
+             data.userId is string &&
+             data.action is string && data.action.size() < 500;
+    }
+
+    // ===============================================================
+    // Rules
+    // ===============================================================
+
+    match /users/{userId} {
+      allow read: if true;
+      allow create: if isAuthenticated() && isValidUser(request.resource.data) && 
+                    (isOwner(userId) && request.resource.data.role == 'user' || isAdmin());
+      allow update: if isAuthenticated() && isValidUser(request.resource.data) &&
+                    (isAdmin() || (isOwner(userId) && request.resource.data.role == resource.data.role));
+    }
+
+    match /contracts/{contractId} {
+      allow read: if true;
+      allow create: if isValidContract(request.resource.data);
+      allow update: if isValidContract(request.resource.data);
+      allow delete: if isAdmin();
+    }
+
+    match /logs/{logId} {
+      allow read: if isAdmin();
+      allow create: if isAuthenticated() && isValidLog(request.resource.data);
+      allow update, delete: if false;
+    }
+  }
+}

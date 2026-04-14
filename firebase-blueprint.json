@@ -1,0 +1,59 @@
+{
+  "entities": {
+    "User": {
+      "title": "User",
+      "description": "User profile and role information",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string" },
+        "email": { "type": "string", "format": "email" },
+        "displayName": { "type": "string" },
+        "photoURL": { "type": "string" },
+        "role": { "type": "string", "enum": ["admin", "lawyer", "user"] },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["uid", "email", "role"]
+    },
+    "Contract": {
+      "title": "Contract",
+      "description": "Legal contracts and documents",
+      "type": "object",
+      "properties": {
+        "title": { "type": "string" },
+        "status": { "type": "string", "enum": ["draft", "active", "expired", "terminated"] },
+        "value": { "type": "number" },
+        "category": { "type": "string", "enum": ["Contrato", "Ata", "Licitação"] },
+        "lawyerId": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["title", "status", "category"]
+    },
+    "ActivityLog": {
+      "title": "ActivityLog",
+      "description": "System activity logs",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "userEmail": { "type": "string" },
+        "action": { "type": "string" },
+        "details": { "type": "string" },
+        "timestamp": { "type": "string", "format": "date-time" }
+      },
+      "required": ["userId", "action", "timestamp"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": "User",
+      "description": "User profiles"
+    },
+    "/contracts/{contractId}": {
+      "schema": "Contract",
+      "description": "Contracts and legal documents"
+    },
+    "/logs/{logId}": {
+      "schema": "ActivityLog",
+      "description": "System activity logs"
+    }
+  }
+}
